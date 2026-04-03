@@ -179,6 +179,82 @@ export const useGame = (caseData) => {
       }
     }
     // =============================================
+    // CASE 2: DIAMOND actions
+    // =============================================
+    else if (caseData.id === 'diamond') {
+      switch (action) {
+        case 'talk_guard':
+          if (!getFlag('guardTalked')) { setFlag('guardTalked'); addLog('Ochroniarz Kowalski: "Byłem na obchodzie. Niczego nie słyszałem."'); }
+          else if (inventory.includes('karta_dostepu') && !getFlag('guardConfessed')) { setFlag('guardConfessed'); addToInventory('zeznanie_guard'); addLog('Pokazujesz kartę dostępu. Kowalski blady: "Dobrze... dyrektor sam mnie prosił o wyłączenie alarmu na 10 min."'); }
+          else if (getFlag('guardConfessed')) addLog('Kowalski zeznał już wszystko.');
+          else addLog('Kowalski jest nerwowy. Może jakiś dowód go złamie…');
+          break;
+        case 'examine_scratches':
+          if (!getFlag('scratchesSeen')) { setFlag('scratchesSeen'); addLog('Zadrapania na marmurze — ktoś przesuwał ciężką gablotę. Ślady prowadzą do pomieszczenia technicznego.'); }
+          else addLog('Zadrapania prowadzą do pomieszczenia technicznego.');
+          break;
+        case 'examine_display':
+          if (!getFlag('displayExamined')) { setFlag('displayExamined'); addLog('Gablota rozbita od wewnątrz — nie od zewnątrz! Ktoś miał klucz do gabloty i symulował włamanie.'); }
+          else addLog('Gablota rozbita od środka. Symulowane włamanie.');
+          break;
+        case 'examine_cameras':
+          if (!getFlag('camerasChecked')) { setFlag('camerasChecked'); addLog('Kamery wyłączone z poziomu panelu sterowania o 3:15. Potrzebna karta dostępu.'); }
+          else addLog('Kamery wyłączone o 3:15.');
+          break;
+        case 'examine_fibers':
+          if (!inventory.includes('wlokna')) { addToInventory('wlokna'); addLog('Ciemnoniebieskie włókna jedwabiu. Drogie — takie noszą ludzie z klasy wyższej, nie złodzieje.'); }
+          else addLog('Włókna jedwabiu. Drogi materiał.');
+          break;
+        case 'examine_gallery_window':
+          if (!getFlag('windowChecked')) { setFlag('windowChecked'); addLog('Okno nietknięte! Zamknięte od wewnątrz. Złodziej wyszedł tym samym wejściem co wszedł.'); }
+          else addLog('Okno zamknięte od środka. Nikt tędy nie uciekał.');
+          break;
+        case 'talk_director':
+          if (!getFlag('directorTalked')) { setFlag('directorTalked'); addLog('Dyrektor Nowak: "Najcenniejszy eksponat! To katastrofa! Muszę zadzwonić do ubezpieczalni." Dziwnie się śpieszy z ubezpieczeniem...'); }
+          else if (inventory.includes('email_wydruk') && !getFlag('directorCaught')) { setFlag('directorCaught'); addLog('Pokazujesz email o długach. Nowak: "To... to nie tak jak myślisz. Miałem problemy, ale..."'); }
+          else addLog('Dyrektor Nowak pije kawę i nic nie mówi.');
+          break;
+        case 'examine_policy':
+          if (!inventory.includes('polisa_dok')) { addToInventory('polisa_dok'); addLog('Polisa: diament ubezpieczony na 5 mln złotych. Beneficjent: Dyrektor Nowak osobiście! Bardzo podejrzane.'); }
+          else addLog('Polisa na 5 mln. Beneficjent: Nowak.');
+          break;
+        case 'examine_trash':
+          if (!getFlag('trashSearched')) { setFlag('trashSearched'); addToInventory('rekawiczka'); addLog('W koszu: ciemnoniebieska jedwabna rękawiczka! Pasuje do włókien z galerii.'); }
+          else addLog('W koszu nic więcej.');
+          break;
+        case 'examine_drawer':
+          if (getFlag('drawerOpen')) addLog('Szuflada pusta.');
+          else if (inventory.includes('klucz_szuflady')) { setShowCodepad('drawer'); }
+          else addLog('Szuflada zamknięta na kluczyk i szyfr. Potrzebujesz klucza i kodu.');
+          break;
+        case 'examine_alarm_panel':
+          if (!getFlag('alarmChecked')) { setFlag('alarmChecked'); addToInventory('karta_dostepu'); addLog('Panel otwarty fachowo. W slocie: karta dostępu ochroniarza Kowalskiego. Użyta o 3:15.'); }
+          else addLog('Panel wyłączony kartą Kowalskiego o 3:15.');
+          break;
+        case 'examine_monitors':
+          if (!getFlag('monitorsChecked')) { setFlag('monitorsChecked'); addLog('Nagrania w pętli od 3:15 do 3:40. Ktoś wgrał starszy materiał. Profesjonalna robota.'); }
+          else addLog('25-minutowa pętla. Profesjonalne.');
+          break;
+        case 'examine_bootprint':
+          if (!inventory.includes('odcisk')) { addToInventory('odcisk'); addLog('Odcisk buta roboczego rozm. 43 w smole. Ochroniarz nosi 46, dyrektor...? Trzeba sprawdzić.'); }
+          else addLog('Odcisk buta rozm. 43.');
+          break;
+        case 'examine_tool_cabinet':
+          if (!getFlag('toolCabinet')) { setFlag('toolCabinet'); addToInventory('klucz_szuflady'); addToInventory('plan_muzeum'); addLog('W szafce: mały kluczyk i plan budynku z zaznaczonym tajnym przejściem do galerii. Na planie notatka: "2137".'); }
+          else addLog('Szafka pusta.');
+          break;
+        case 'ending_check': {
+          const hasInsurance = inventory.includes('polisa_dok');
+          const hasGlove = inventory.includes('rekawiczka');
+          const hasTestimony = inventory.includes('zeznanie_guard') || getFlag('directorCaught');
+          if (hasInsurance && hasGlove && hasTestimony) { playSuccessSound(); setGameWon(true); }
+          else { const m = []; if (!hasInsurance) m.push('motyw finansowy'); if (!hasGlove) m.push('dowód fizyczny'); if (!hasTestimony) m.push('zeznanie lub przyznanie'); addLog(`Brakuje: ${m.join(', ')}. Szukaj dalej!`); }
+          break;
+        }
+        default: addLog('Nic się nie dzieje.');
+      }
+    }
+    // =============================================
     // CASE 3: OPERA actions
     // =============================================
     else if (caseData.id === 'opera') {
