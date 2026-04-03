@@ -1,0 +1,65 @@
+{
+  "title": "Sprawa Posiadłości Blackwood",
+  "startingRoom": "hol",
+  "rooms": {
+    "hol": {
+      "name": "Główny Hol",
+      "description": "Znajdujesz się w okazałym holu posiadłości Blackwood. Zegar tyka złowieszczo, a zapach wiekowej dębiny miesza się z wonią deszczu wpadającego przez uchylone drzwi. Na podłodze widać świeże ślady błota prowadzące do ogrodu.",
+      "nodes": [
+        { "id": "drzwi_gabinet", "label": "Wejdź do Gabinetu", "target": "gabinet", "icon": "DoorClosed" },
+        { "id": "drzwi_biblioteka", "label": "Idź do Biblioteki", "target": "biblioteka", "icon": "BookOpen" },
+        { "id": "drzwi_ogrod", "label": "Wyjdź do Ogrodu", "target": "ogrod", "icon": "Map" },
+        { "id": "oskarzenie", "label": "Zakończ Śledztwo", "action": "ending_check", "icon": "AlertCircle" }
+      ]
+    },
+    "gabinet": {
+      "name": "Mroczny Gabinet",
+      "description": "Mroczny pokój oświetlony jedynie dogasającym żarem z kominka. Na środku, twarzą do ziemi, leży lord Blackwood. W kącie stoi masywny sejf i dębowe biurko.",
+      "nodes": [
+        { "id": "cialo", "label": "Zbadaj Ciało", "action": "examine_body", "icon": "Search" },
+        { "id": "biurko", "label": "Przeszukaj Biurko", "action": "examine_desk", "icon": "FileText" },
+        { "id": "sejf", "label": "Otwórz Sejf", "action": "open_safe", "icon": "Lock" },
+        { "id": "kratka", "label": "Kratka Wentylacyjna", "action": "examine_vent", "icon": "Settings" },
+        { "id": "powrot_hol", "label": "Wróć do Holu", "target": "hol", "icon": "ChevronLeft" }
+      ]
+    },
+    "biblioteka": {
+      "name": "Biblioteka",
+      "description": "Ściany wyłożone tysiącami ksiąg. Atmosfera jest tu ciężka i duszna. Pośrodku stoi biurko do czytania, na którym leży otwarta książka.",
+      "nodes": [
+        { "id": "regal", "label": "Regał z Książkami", "action": "examine_books", "icon": "Library" },
+        { "id": "biurko_czytelnia", "label": "Biurko do Czytania", "action": "examine_reading_desk", "icon": "Book" },
+        { "id": "powrot_hol", "label": "Wróć do Holu", "target": "hol", "icon": "ChevronLeft" }
+      ]
+    },
+    "ogrod": {
+      "name": "Zaniedbany Ogród",
+      "description": "Zimny deszcz siecze po twarzy. Ślady w błocie prowadzą w stronę starej szopy na narzędzia. Widać tam słabe światło.",
+      "nodes": [
+        { "id": "sciezka", "label": "Błotnista Ścieżka", "action": "examine_path", "icon": "Footprints" },
+        { "id": "szopa", "label": "Szopa Ogrodnika", "action": "enter_shed", "icon": "Home" },
+        { "id": "powrot_hol", "label": "Wróć do Holu", "target": "hol", "icon": "ChevronLeft" }
+      ]
+    }
+  },
+  "items": {
+    "telefon": { "name": "Smartfon Ofiary", "desc": "Zablokowany kodem PIN. Ostatnie połączenie było od 'O'.", "icon": "Smartphone" },
+    "latarka_uv_pusta": { "name": "Latarka UV (Pusta)", "desc": "Wymaga baterii AA.", "icon": "Flashlight" },
+    "baterie": { "name": "Baterie AA", "desc": "Dwie sztuki, wyglądają na nowe.", "icon": "Battery" },
+    "latarka_uv": { "name": "Latarka UV (Działa)", "desc": "Ujawnia niewidoczne ślady.", "icon": "Zap" },
+    "srubokret": { "name": "Śrubokręt", "desc": "Płaski, ze śladami farby.", "icon": "Tool" },
+    "klucz_szopa": { "name": "Brudny Klucz", "desc": "Znaleziony w ogrodzie.", "icon": "Key" },
+    "bilet": { "name": "Bilet do Selk", "desc": "Bilet lotniczy na nazwisko lorda Blackwooda.", "icon": "Ticket" },
+    "zdjecie_1": { "name": "Zdjęcie (Lewa)", "desc": "Fragment fotografii.", "icon": "Image" },
+    "zdjecie_2": { "name": "Zdjęcie (Prawa)", "desc": "Fragment fotografii.", "icon": "Image" },
+    "zdjecie_pelne": { "name": "Zdjęcie Ogrodnika", "desc": "Przedstawia ogrodnika trzymającego narzędzie zbrodni.", "icon": "Camera" },
+    "pamietnik": { "name": "Pamiętnik Pana Domu", "desc": "Zawiera dziwne notatki o długach ogrodnika.", "icon": "BookOpen" }
+  },
+  "flags": {
+    "has_uv_light": false,
+    "phone_unlocked": false,
+    "safe_open": false,
+    "shed_open": false,
+    "vent_open": false
+  }
+}
