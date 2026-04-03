@@ -27,12 +27,18 @@ const IconMap = {
    ============================================ */
 function ItemTooltip({ data, children, isSelected, onClick }) {
   const [show, setShow] = useState(false);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    setPos({ x: e.clientX, y: e.clientY });
+  };
 
   return (
     <div 
       className="tooltip-wrapper"
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
+      onMouseMove={handleMouseMove}
       onClick={onClick}
     >
       {children}
@@ -40,10 +46,11 @@ function ItemTooltip({ data, children, isSelected, onClick }) {
         {show && data && (
           <motion.div 
             className="tooltip-popup"
-            initial={{ opacity: 0, y: 4 }}
+            style={{ left: pos.x, top: pos.y - 10, transform: 'translate(-50%, -100%)' }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.15 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.12 }}
           >
             <p className="tooltip-popup__name">{data.name}</p>
             <p className="tooltip-popup__desc">{data.desc}</p>

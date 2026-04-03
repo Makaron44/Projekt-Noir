@@ -1000,29 +1000,16 @@ h1, h2, h3, .typewriter-font {
 }
 
 .tooltip-popup {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-medium);
+  position: fixed;
+  z-index: 9999;
+  background: #1e1e1e;
+  border: 1px solid rgba(200, 149, 108, 0.4);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   min-width: 180px;
   max-width: 240px;
-  z-index: 100;
   pointer-events: none;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-}
-
-.tooltip-popup::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--border-medium);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(200, 149, 108, 0.15);
 }
 
 .tooltip-popup__name {
