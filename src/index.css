@@ -991,3 +991,210 @@ h1, h2, h3, .typewriter-font {
   color: var(--accent-success);
   margin-top: 0.5rem;
 }
+
+/* ============================================
+   CUSTOM TOOLTIP
+   ============================================ */
+.tooltip-wrapper {
+  position: relative;
+}
+
+.tooltip-popup {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  min-width: 180px;
+  max-width: 240px;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.tooltip-popup::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--border-medium);
+}
+
+.tooltip-popup__name {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.8rem;
+  color: var(--accent-amber);
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-popup__desc {
+  font-family: 'Roboto Slab', serif;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ============================================
+   CINEMATIC INTRO
+   ============================================ */
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Rain drops animation */
+.intro-rain {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.3;
+}
+
+.intro-raindrop {
+  position: absolute;
+  width: 1px;
+  background: linear-gradient(transparent, rgba(200, 200, 220, 0.4));
+  animation: raindrop-fall linear infinite;
+}
+
+@keyframes raindrop-fall {
+  0% { transform: translateY(-100vh); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Vignette */
+.intro-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.8) 100%);
+  pointer-events: none;
+}
+
+.intro-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 600px;
+  padding: 2rem;
+}
+
+.intro-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  color: rgba(200, 149, 108, 0.5);
+  margin-bottom: 2rem;
+}
+
+.intro-title {
+  font-family: 'Special Elite', monospace;
+  font-size: 4rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .intro-title { font-size: 2.5rem; }
+}
+
+.intro-subtitle {
+  font-family: 'Roboto Slab', serif;
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 3rem;
+}
+
+.intro-divider {
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-amber), transparent);
+  margin: 0 auto 2rem;
+}
+
+.intro-prompt {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+  animation: intro-blink 2s ease-in-out infinite;
+}
+
+@keyframes intro-blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* Scanline effect for noir feel */
+.intro-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ============================================
+   VICTORY STATS
+   ============================================ */
+.victory-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.victory-stat {
+  text-align: center;
+}
+
+.victory-stat__value {
+  font-family: 'Special Elite', monospace;
+  font-size: 1.5rem;
+  color: var(--accent-amber);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.victory-stat__label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .victory-stats {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

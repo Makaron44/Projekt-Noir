@@ -7,7 +7,7 @@ import {
   PenTool, Key, Ticket, Image as ImageIcon, 
   Camera, Book, Library, Footprints, Home,
   AlertCircle, CheckCircle2, ChevronRight,
-  Volume2, VolumeX, RotateCcw, Star, ArrowLeft
+  Volume2, VolumeX, RotateCcw, ArrowLeft, Clock, Target, Package
 } from 'lucide-react';
 import { useGame } from './hooks/useGame';
 import { allCases, getCompletedCases, markCaseCompleted } from './cases/index.js';
@@ -21,6 +21,38 @@ const IconMap = {
   Camera, Book, Library, Footprints, Home,
   AlertCircle, CheckCircle2, ChevronRight
 };
+
+/* ============================================
+   ITEM TOOLTIP
+   ============================================ */
+function ItemTooltip({ data, children, isSelected, onClick }) {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div 
+      className="tooltip-wrapper"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+      onClick={onClick}
+    >
+      {children}
+      <AnimatePresence>
+        {show && data && (
+          <motion.div 
+            className="tooltip-popup"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.15 }}
+          >
+            <p className="tooltip-popup__name">{data.name}</p>
+            <p className="tooltip-popup__desc">{data.desc}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 /* ============================================
    CODEPAD MODAL
@@ -71,18 +103,152 @@ function CodepadModal({ type, onSubmit, onClose }) {
 }
 
 /* ============================================
-   VICTORY SCREEN
+   CINEMATIC INTRO
    ============================================ */
-function VictoryScreen({ caseData, onRestart, onMenu }) {
+function IntroScreen({ onDismiss }) {
+  const [visible, setVisible] = useState(true);
+  const raindrops = useMemo(() => 
+    Array.from({ length: 80 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      height: `${15 + Math.random() * 30}px`,
+      duration: `${0.6 + Math.random() * 0.8}s`,
+      delay: `${Math.random() * 2}s`,
+      opacity: 0.2 + Math.random() * 0.4
+    })), []);
+
+  const handleClick = () => {
+    setVisible(false);
+    startRain();
+    setTimeout(onDismiss, 600);
+  };
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div 
+          className="intro-screen" 
+          onClick={handleClick}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Animated rain */}
+          <div className="intro-rain">
+            {raindrops.map(d => (
+              <div
+                key={d.id}
+                className="intro-raindrop"
+                style={{
+                  left: d.left,
+                  height: d.height,
+                  animationDuration: d.duration,
+                  animationDelay: d.delay,
+                  opacity: d.opacity
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Vignette overlay */}
+          <div className="intro-vignette" />
+          
+          {/* Scanlines */}
+          <div className="intro-scanlines" />
+
+          {/* Content */}
+          <motion.div 
+            className="intro-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 1.5 }}
+          >
+            <motion.p 
+              className="intro-badge"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            >
+              Interaktywna gra detektywistyczna
+            </motion.p>
+            
+            <motion.h1 
+              className="intro-title"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 1 }}
+            >
+              Projekt Noir
+            </motion.h1>
+            
+            <motion.p 
+              className="intro-subtitle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5, duration: 1 }}
+            >
+              „W tym mieście każdy ma tajemnicę. Twoja robota — je odkryć."
+            </motion.p>
+
+            <motion.div 
+              className="intro-divider"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 2, duration: 0.8 }}
+            />
+
+            <motion.p 
+              className="intro-prompt"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2.5 }}
+            >
+              Kliknij aby rozpocząć
+            </motion.p>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ============================================
+   VICTORY SCREEN (with stats)
+   ============================================ */
+function VictoryScreen({ caseData, steps, startTime, inventoryCount, onRestart, onMenu }) {
   useEffect(() => { markCaseCompleted(caseData.id); }, [caseData.id]);
+
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const minutes = Math.floor(elapsed / 60);
+  const seconds = elapsed % 60;
+  const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const totalItems = Object.keys(caseData.items).length;
+  const pct = Math.round((inventoryCount / totalItems) * 100);
 
   return (
     <motion.div className="victory-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <motion.div className="victory-card" initial={{ scale: 0.8, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.2, type: 'spring' }}>
         <CheckCircle2 size={64} className="victory-card__icon" />
         <h1 className="victory-card__title">Sprawa Rozwiązana!</h1>
+
+        <div className="victory-stats">
+          <div className="victory-stat">
+            <div className="victory-stat__value">{timeStr}</div>
+            <div className="victory-stat__label">Czas</div>
+          </div>
+          <div className="victory-stat">
+            <div className="victory-stat__value">{steps}</div>
+            <div className="victory-stat__label">Kroki</div>
+          </div>
+          <div className="victory-stat">
+            <div className="victory-stat__value">{pct}%</div>
+            <div className="victory-stat__label">Dowody</div>
+          </div>
+        </div>
+
         <p className="victory-card__text">{caseData.victoryText}</p>
-        <p className="victory-card__rank">Ranga: Detektyw Pierwszej Klasy ★★★</p>
+        <p className="victory-card__rank">
+          Ranga: {pct >= 90 ? 'Legendarny Detektyw ★★★★★' : pct >= 70 ? 'Detektyw Pierwszej Klasy ★★★★' : pct >= 50 ? 'Inspektor ★★★' : 'Początkujący ★★'}
+        </p>
         <div className="victory-card__actions">
           <button className="victory-card__button" onClick={onRestart}><RotateCcw size={16} /> Zagraj Ponownie</button>
           <button className="victory-card__button victory-card__button--secondary" onClick={onMenu}><ArrowLeft size={16} /> Wybór Spraw</button>
@@ -127,15 +293,12 @@ function MainMenu({ onSelectCase }) {
                   <span className="case-card__time">{c.estimate}</span>
                 </div>
                 {isCompleted && (
-                  <div className="case-card__badge">
-                    <CheckCircle2 size={14} /> Rozwiązana
-                  </div>
+                  <div className="case-card__badge"><CheckCircle2 size={14} /> Rozwiązana</div>
                 )}
               </motion.button>
             );
           })}
 
-          {/* Future cases placeholder */}
           <motion.div 
             className="case-card case-card--locked"
             initial={{ opacity: 0, y: 20 }}
@@ -169,18 +332,11 @@ function GameScreen({ caseData, onBackToMenu }) {
     currentRoom, inventory, logs,
     selectedItem, setSelectedItem, 
     showCodepad, setShowCodepad,
-    gameWon,
+    gameWon, steps, startTime,
     handleMove, handleAction, handleCombine, handleCodeSubmit, handleItemUse
   } = useGame(caseData);
 
   const [muted, setMuted] = useState(getMuted());
-  const [soundStarted, setSoundStarted] = useState(false);
-
-  useEffect(() => {
-    const start = () => { if (!soundStarted) { startRain(); setSoundStarted(true); } };
-    document.addEventListener('click', start, { once: true });
-    return () => document.removeEventListener('click', start);
-  }, [soundStarted]);
 
   const handleMuteToggle = () => { const m = toggleMute(); setMuted(m); };
 
@@ -197,7 +353,7 @@ function GameScreen({ caseData, onBackToMenu }) {
   }, [inventory, caseData]);
 
   if (gameWon) {
-    return <VictoryScreen caseData={caseData} onRestart={() => window.location.reload()} onMenu={onBackToMenu} />;
+    return <VictoryScreen caseData={caseData} steps={steps} startTime={startTime} inventoryCount={inventory.length} onRestart={() => window.location.reload()} onMenu={onBackToMenu} />;
   }
 
   if (!currentRoom) {
@@ -269,9 +425,11 @@ function GameScreen({ caseData, onBackToMenu }) {
                     const Icon = IconMap[data.icon] || Settings;
                     const isSelected = selectedItem === key;
                     return (
-                      <button key={key} onClick={() => handleItemClick(key)} className={`inventory-slot ${isSelected ? 'active' : ''}`} title={`${data.name}: ${data.desc}`}>
-                        <Icon size={22} className="inventory-slot__icon" />
-                      </button>
+                      <ItemTooltip key={key} data={data} isSelected={isSelected} onClick={() => handleItemClick(key)}>
+                        <button className={`inventory-slot ${isSelected ? 'active' : ''}`}>
+                          <Icon size={22} className="inventory-slot__icon" />
+                        </button>
+                      </ItemTooltip>
                     );
                   })}
                 </div>
@@ -321,10 +479,15 @@ function GameScreen({ caseData, onBackToMenu }) {
 }
 
 /* ============================================
-   APP ROOT - Route between menu and game
+   APP ROOT
    ============================================ */
 function App() {
   const [activeCase, setActiveCase] = useState(null);
+  const [showIntro, setShowIntro] = useState(true);
+
+  if (showIntro) {
+    return <IntroScreen onDismiss={() => setShowIntro(false)} />;
+  }
 
   if (!activeCase) {
     return <MainMenu onSelectCase={setActiveCase} />;

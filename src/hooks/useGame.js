@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { playDoorSound, playDiscoverySound, playTypewriterClick, playErrorSound, playSuccessSound } from '../sounds.js';
 
 export const useGame = (caseData) => {
@@ -9,11 +9,14 @@ export const useGame = (caseData) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [showCodepad, setShowCodepad] = useState(null);
   const [gameWon, setGameWon] = useState(false);
+  const [steps, setSteps] = useState(0);
+  const startTime = useRef(Date.now());
 
   const currentRoom = useMemo(() => caseData.rooms[currentRoomId], [currentRoomId, caseData]);
 
   const addLog = useCallback((text) => {
     playTypewriterClick();
+    setSteps(s => s + 1);
     setLogs(prev => [text, ...prev].slice(0, 15));
   }, []);
 
@@ -538,6 +541,7 @@ export const useGame = (caseData) => {
     selectedItem, setSelectedItem,
     showCodepad, setShowCodepad,
     gameWon, setGameWon,
+    steps, startTime: startTime.current,
     handleMove, handleAction, handleCombine, handleCodeSubmit, handleItemUse
   };
 };
