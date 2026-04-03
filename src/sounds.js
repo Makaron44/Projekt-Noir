@@ -4,8 +4,9 @@
 // ============================================
 
 let audioCtx = null;
-let rainNode = null;
+let rainNodes = [];
 let rainGain = null;
+let dropletInterval = null;
 let isMuted = false;
 
 function getCtx() {
@@ -15,46 +16,104 @@ function getCtx() {
   return audioCtx;
 }
 
-// --- AMBIENT RAIN ---
-export function startRain() {
-  if (rainNode) return;
-  const ctx = getCtx();
-  const bufferSize = 2 * ctx.sampleRate;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = Math.random() * 2 - 1;
+// Helper: create a looping noise buffer with given filter
+function createNoiseLayer(ctx, cutoff, filterType, Q, volume) {
+  const bufferSize = 4 * ctx.sampleRate;
+  const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+  
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    // Brown noise (smoother) - integrate white noise
+    let lastOut = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      lastOut = (lastOut + (0.02 * white)) / 1.02;
+      data[i] = lastOut * 3.5;
+    }
   }
 
-  rainNode = ctx.createBufferSource();
-  rainNode.buffer = buffer;
-  rainNode.loop = true;
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
 
   const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 400;
+  filter.type = filterType;
+  filter.frequency.value = cutoff;
+  filter.Q.value = Q;
 
-  const filter2 = ctx.createBiquadFilter();
-  filter2.type = 'highpass';
-  filter2.frequency.value = 80;
+  const gain = ctx.createGain();
+  gain.gain.value = volume;
 
+  source.connect(filter);
+  filter.connect(gain);
+  return { source, gain };
+}
+
+// --- AMBIENT RAIN (realistic, multi-layer) ---
+export function startRain() {
+  if (rainNodes.length > 0) return;
+  const ctx = getCtx();
+  
   rainGain = ctx.createGain();
-  rainGain.gain.value = isMuted ? 0 : 0.08;
-
-  rainNode.connect(filter);
-  filter.connect(filter2);
-  filter2.connect(rainGain);
+  rainGain.gain.value = isMuted ? 0 : 1;
   rainGain.connect(ctx.destination);
-  rainNode.start();
+
+  // Layer 1: Deep rumble (distant thunder/wind) 
+  const deep = createNoiseLayer(ctx, 150, 'lowpass', 0.5, 0.06);
+  deep.gain.connect(rainGain);
+  deep.source.start();
+  rainNodes.push(deep);
+
+  // Layer 2: Mid rain wash (main body of rain)
+  const mid = createNoiseLayer(ctx, 800, 'bandpass', 0.8, 0.035);
+  mid.gain.connect(rainGain);
+  mid.source.start();
+  rainNodes.push(mid);
+
+  // Layer 3: Gentle high patter (individual drops on window)
+  const high = createNoiseLayer(ctx, 3000, 'bandpass', 2, 0.012);
+  high.gain.connect(rainGain);
+  high.source.start();
+  rainNodes.push(high);
+
+  // Layer 4: Random droplet plinks
+  startDroplets(ctx);
+}
+
+function startDroplets(ctx) {
+  if (dropletInterval) return;
+  
+  function playDroplet() {
+    if (isMuted) return;
+    const freq = 2000 + Math.random() * 4000;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, ctx.currentTime + 0.06);
+    gain.gain.setValueAtTime(0.008 + Math.random() * 0.008, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(rainGain);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+  }
+
+  function scheduleNext() {
+    const delay = 100 + Math.random() * 350;
+    dropletInterval = setTimeout(() => {
+      playDroplet();
+      scheduleNext();
+    }, delay);
+  }
+  scheduleNext();
 }
 
 export function stopRain() {
-  if (rainNode) {
-    rainNode.stop();
-    rainNode.disconnect();
-    rainNode = null;
-    rainGain = null;
-  }
+  rainNodes.forEach(n => { n.source.stop(); n.source.disconnect(); n.gain.disconnect(); });
+  rainNodes = [];
+  rainGain = null;
+  if (dropletInterval) { clearTimeout(dropletInterval); dropletInterval = null; }
 }
 
 // --- SHORT SOUND EFFECTS ---
@@ -149,7 +208,7 @@ export function playKeypadBeep() {
 export function toggleMute() {
   isMuted = !isMuted;
   if (rainGain) {
-    rainGain.gain.value = isMuted ? 0 : 0.08;
+    rainGain.gain.value = isMuted ? 0 : 1;
   }
   return isMuted;
 }
