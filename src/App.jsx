@@ -119,7 +119,6 @@ function IntroScreen({ onDismiss }) {
 
   const handleClick = () => {
     setVisible(false);
-    startRain();
     setTimeout(onDismiss, 600);
   };
 
