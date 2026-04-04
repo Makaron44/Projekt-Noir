@@ -508,7 +508,7 @@ function PinModal({ onSuccess, onClose }) {
   const [code, setCode] = useState('');
   const [shake, setShake] = useState(false);
   const [error, setError] = useState(false);
-  const EDITOR_PIN = '1947';
+  const EDITOR_PIN = '4620';
   const maxLen = 4;
 
   const handleDigit = (d) => { if (code.length < maxLen) { playKeypadBeep(); setCode(prev => prev + d); } };
