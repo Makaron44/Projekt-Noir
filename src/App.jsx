@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, DoorClosed, BookOpen, Map, 
-  Settings, FileText, Lock, ChevronLeft, 
-  Smartphone, Flashlight, Battery, Zap, 
-  PenTool, Key, Ticket, Image as ImageIcon, 
+import {
+  Search, DoorClosed, BookOpen, Map,
+  Settings, FileText, Lock, ChevronLeft,
+  Smartphone, Flashlight, Battery, Zap,
+  PenTool, Key, Ticket, Image as ImageIcon,
   Camera, Book, Library, Footprints, Home,
   AlertCircle, CheckCircle2, ChevronRight,
   Volume2, VolumeX, RotateCcw, ArrowLeft, Clock, Target, Package, Edit3, Trash2
@@ -15,10 +15,10 @@ import { toggleMute, getMuted, playKeypadBeep, playErrorSound } from './sounds.j
 import CaseEditor from './CaseEditor.jsx';
 
 const IconMap = {
-  Search, DoorClosed, BookOpen, Map, 
-  Settings, FileText, Lock, ChevronLeft, 
-  Smartphone, Flashlight, Battery, Zap, 
-  PenTool, Key, Ticket, ImageIcon, 
+  Search, DoorClosed, BookOpen, Map,
+  Settings, FileText, Lock, ChevronLeft,
+  Smartphone, Flashlight, Battery, Zap,
+  PenTool, Key, Ticket, ImageIcon,
   Camera, Book, Library, Footprints, Home,
   AlertCircle, CheckCircle2, ChevronRight
 };
@@ -35,7 +35,7 @@ function ItemTooltip({ data, children, isSelected, onClick }) {
   };
 
   return (
-    <div 
+    <div
       className="tooltip-wrapper"
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
@@ -45,7 +45,7 @@ function ItemTooltip({ data, children, isSelected, onClick }) {
       {children}
       <AnimatePresence>
         {show && data && (
-          <motion.div 
+          <motion.div
             className="tooltip-popup"
             style={{ left: pos.x, top: pos.y - 10, transform: 'translate(-50%, -100%)' }}
             initial={{ opacity: 0, y: 6 }}
@@ -81,7 +81,7 @@ function CodepadModal({ type, onSubmit, onClose }) {
 
   return (
     <div className="codepad-overlay" onClick={onClose}>
-      <motion.div 
+      <motion.div
         className={`codepad-modal ${shake ? 'codepad-modal--shake' : ''}`}
         onClick={e => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -97,7 +97,7 @@ function CodepadModal({ type, onSubmit, onClose }) {
           ))}
         </div>
         <div className="codepad-grid">
-          {[1,2,3,4,5,6,7,8,9].map(d => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
             <button key={d} className="codepad-key" onClick={() => handleDigit(String(d))}>{d}</button>
           ))}
           <button className="codepad-key codepad-key--action" onClick={handleDelete}>←</button>
@@ -115,7 +115,7 @@ function CodepadModal({ type, onSubmit, onClose }) {
    ============================================ */
 function IntroScreen({ onDismiss }) {
   const [visible, setVisible] = useState(true);
-  const raindrops = useMemo(() => 
+  const raindrops = useMemo(() =>
     Array.from({ length: 80 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -133,8 +133,8 @@ function IntroScreen({ onDismiss }) {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div 
-          className="intro-screen" 
+        <motion.div
+          className="intro-screen"
           onClick={handleClick}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6 }}
@@ -158,18 +158,18 @@ function IntroScreen({ onDismiss }) {
 
           {/* Vignette overlay */}
           <div className="intro-vignette" />
-          
+
           {/* Scanlines */}
           <div className="intro-scanlines" />
 
           {/* Content */}
-          <motion.div 
+          <motion.div
             className="intro-content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 1.5 }}
           >
-            <motion.p 
+            <motion.p
               className="intro-badge"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -177,8 +177,8 @@ function IntroScreen({ onDismiss }) {
             >
               Interaktywna gra detektywistyczna
             </motion.p>
-            
-            <motion.h1 
+
+            <motion.h1
               className="intro-title"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -186,8 +186,8 @@ function IntroScreen({ onDismiss }) {
             >
               Projekt Noir
             </motion.h1>
-            
-            <motion.p 
+
+            <motion.p
               className="intro-subtitle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -196,14 +196,14 @@ function IntroScreen({ onDismiss }) {
               „W tym mieście każdy ma tajemnicę. Twoja robota — je odkryć."
             </motion.p>
 
-            <motion.div 
+            <motion.div
               className="intro-divider"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ delay: 2, duration: 0.8 }}
             />
 
-            <motion.p 
+            <motion.p
               className="intro-prompt"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -305,7 +305,7 @@ function MainMenu({ onSelectCase, onOpenEditor }) {
               >
                 <div className="case-card__number">
                   #{i + 1}
-                  {isCustom && <span className="editor-badge" style={{marginLeft:'0.5rem'}}>WŁASNA</span>}
+                  {isCustom && <span className="editor-badge" style={{ marginLeft: '0.5rem' }}>WŁASNA</span>}
                   {isCustom && <span className="case-card__delete" onClick={e => handleDeleteCustom(e, c.id)}><Trash2 size={12} /></span>}
                 </div>
                 <h2 className="case-card__title">{c.title || 'Bez tytułu'}</h2>
@@ -351,9 +351,9 @@ function MainMenu({ onSelectCase, onOpenEditor }) {
    GAME SCREEN
    ============================================ */
 function GameScreen({ caseData, onBackToMenu }) {
-  const { 
+  const {
     currentRoom, inventory, logs,
-    selectedItem, setSelectedItem, 
+    selectedItem, setSelectedItem,
     showCodepad, setShowCodepad,
     gameWon, steps, startTime,
     handleMove, handleAction, handleCombine, handleCodeSubmit, handleItemUse
@@ -381,10 +381,10 @@ function GameScreen({ caseData, onBackToMenu }) {
 
   if (!currentRoom) {
     return (
-      <div className="noir-container" style={{justifyContent:'center', alignItems:'center'}}>
-        <div className="glass-panel" style={{textAlign:'center'}}>
+      <div className="noir-container" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <div className="glass-panel" style={{ textAlign: 'center' }}>
           <h1>Błąd</h1>
-          <button onClick={onBackToMenu} className="btn-noir" style={{marginTop:'2rem'}}>Powrót do Menu</button>
+          <button onClick={onBackToMenu} className="btn-noir" style={{ marginTop: '2rem' }}>Powrót do Menu</button>
         </div>
       </div>
     );
@@ -393,7 +393,7 @@ function GameScreen({ caseData, onBackToMenu }) {
   return (
     <div className="noir-container">
       <header className="noir-header">
-        <div style={{display:'flex', alignItems:'center', gap:'1rem'}}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button className="sound-toggle" onClick={onBackToMenu} title="Powrót do menu">
             <ArrowLeft size={16} />
           </button>
@@ -406,7 +406,7 @@ function GameScreen({ caseData, onBackToMenu }) {
             </motion.p>
           </div>
         </div>
-        <div style={{display:'flex', gap:'0.75rem', alignItems:'center'}}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <button className="sound-toggle" onClick={handleMuteToggle} title={muted ? 'Włącz dźwięk' : 'Wycisz'}>
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
@@ -420,7 +420,7 @@ function GameScreen({ caseData, onBackToMenu }) {
       <main className="noir-main">
         <div>
           <AnimatePresence mode="wait">
-            <motion.div 
+            <motion.div
               key={currentRoom.name}
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
@@ -475,7 +475,7 @@ function GameScreen({ caseData, onBackToMenu }) {
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="evidence-card">
                 <div className="evidence-card__badge">
                   <span className="evidence-card__badge-label">Wybrany dowód</span>
-                  <div className="evidence-card__badge-icon"><Zap size={10} style={{color: 'var(--accent-amber)'}} /></div>
+                  <div className="evidence-card__badge-icon"><Zap size={10} style={{ color: 'var(--accent-amber)' }} /></div>
                 </div>
                 <p className="evidence-card__name">{caseData.items[selectedItem].name}</p>
                 <p className="evidence-card__desc">{caseData.items[selectedItem].desc}</p>
@@ -502,20 +502,61 @@ function GameScreen({ caseData, onBackToMenu }) {
 }
 
 /* ============================================
+   PIN MODAL (editor lock)
+   ============================================ */
+function PinModal({ onSuccess, onClose }) {
+  const [code, setCode] = useState('');
+  const [shake, setShake] = useState(false);
+  const [error, setError] = useState(false);
+  const EDITOR_PIN = '1947';
+  const maxLen = 4;
+
+  const handleDigit = (d) => { if (code.length < maxLen) { playKeypadBeep(); setCode(prev => prev + d); } };
+  const handleDelete = () => { setCode(prev => prev.slice(0, -1)); setError(false); };
+  const handleSubmit = () => {
+    if (code === EDITOR_PIN) { onSuccess(); }
+    else { setShake(true); setError(true); setCode(''); setTimeout(() => setShake(false), 500); }
+  };
+
+  return (
+    <div className="codepad-overlay" onClick={onClose}>
+      <motion.div
+        className={`codepad-modal ${shake ? 'codepad-modal--shake' : ''}`}
+        onClick={e => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+      >
+        <div className="codepad-modal__icon"><Lock size={32} /></div>
+        <h3 className="codepad-modal__title">Edytor Spraw</h3>
+        <p className="codepad-modal__subtitle">{error ? 'Nieprawidłowy PIN. Spróbuj ponownie.' : 'Podaj 4-cyfrowy PIN dostępu'}</p>
+        <div className="codepad-modal__display">
+          {Array.from({ length: maxLen }).map((_, i) => (
+            <div key={i} className={`codepad-dot ${i < code.length ? 'codepad-dot--filled' : ''}`} />
+          ))}
+        </div>
+        <div className="codepad-grid">
+          {[1,2,3,4,5,6,7,8,9].map(d => (
+            <button key={d} className="codepad-key" onClick={() => handleDigit(String(d))}>{d}</button>
+          ))}
+          <button className="codepad-key codepad-key--action" onClick={handleDelete}>←</button>
+          <button className="codepad-key" onClick={() => handleDigit('0')}>0</button>
+          <button className="codepad-key codepad-key--submit" onClick={handleSubmit}>✓</button>
+        </div>
+        <button className="codepad-modal__cancel" onClick={onClose}>Anuluj</button>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ============================================
    APP ROOT
    ============================================ */
 function App() {
   const [activeCase, setActiveCase] = useState(null);
   const [showIntro, setShowIntro] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
-
-  const EDITOR_PIN = '1947';
-
-  const handleOpenEditor = () => {
-    const pin = prompt('🔒 Edytor jest chroniony. Podaj PIN:');
-    if (pin === EDITOR_PIN) setShowEditor(true);
-    else if (pin !== null) alert('Nieprawidłowy PIN.');
-  };
+  const [showPinModal, setShowPinModal] = useState(false);
 
   if (showIntro) {
     return <IntroScreen onDismiss={() => setShowIntro(false)} />;
@@ -526,7 +567,14 @@ function App() {
   }
 
   if (!activeCase) {
-    return <MainMenu onSelectCase={setActiveCase} onOpenEditor={handleOpenEditor} />;
+    return (
+      <>
+        <MainMenu onSelectCase={setActiveCase} onOpenEditor={() => setShowPinModal(true)} />
+        <AnimatePresence>
+          {showPinModal && <PinModal onSuccess={() => { setShowPinModal(false); setShowEditor(true); }} onClose={() => setShowPinModal(false)} />}
+        </AnimatePresence>
+      </>
+    );
   }
 
   return <GameScreen key={activeCase.id} caseData={activeCase} onBackToMenu={() => setActiveCase(null)} />;
