@@ -7,11 +7,12 @@ import {
   PenTool, Key, Ticket, Image as ImageIcon, 
   Camera, Book, Library, Footprints, Home,
   AlertCircle, CheckCircle2, ChevronRight,
-  Volume2, VolumeX, RotateCcw, ArrowLeft, Clock, Target, Package
+  Volume2, VolumeX, RotateCcw, ArrowLeft, Clock, Target, Package, Edit3, Trash2
 } from 'lucide-react';
 import { useGame } from './hooks/useGame';
-import { allCases, getCompletedCases, markCaseCompleted } from './cases/index.js';
-import { startRain, stopRain, toggleMute, getMuted, playKeypadBeep, playErrorSound } from './sounds.js';
+import { builtInCases, getCustomCases, getCompletedCases, markCaseCompleted, deleteCustomCase } from './cases/index.js';
+import { toggleMute, getMuted, playKeypadBeep, playErrorSound } from './sounds.js';
+import CaseEditor from './CaseEditor.jsx';
 
 const IconMap = {
   Search, DoorClosed, BookOpen, Map, 
@@ -267,8 +268,18 @@ function VictoryScreen({ caseData, steps, startTime, inventoryCount, onRestart, 
 /* ============================================
    MAIN MENU
    ============================================ */
-function MainMenu({ onSelectCase }) {
+function MainMenu({ onSelectCase, onOpenEditor }) {
   const completed = getCompletedCases();
+  const customCases = getCustomCases();
+  const allCases = [...builtInCases, ...customCases];
+
+  const handleDeleteCustom = (e, id) => {
+    e.stopPropagation();
+    if (confirm('Usunąć tę sprawę?')) {
+      deleteCustomCase(id);
+      window.location.reload();
+    }
+  };
 
   return (
     <div className="noir-container">
@@ -282,18 +293,23 @@ function MainMenu({ onSelectCase }) {
         <div className="case-grid">
           {allCases.map((c, i) => {
             const isCompleted = completed.includes(c.id);
+            const isCustom = !!c.isCustom;
             return (
               <motion.button
                 key={c.id}
-                className={`case-card ${isCompleted ? 'case-card--completed' : ''}`}
+                className={`case-card ${isCompleted ? 'case-card--completed' : ''} ${isCustom ? 'case-card--custom' : ''}`}
                 onClick={() => onSelectCase(c)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
               >
-                <div className="case-card__number">#{i + 1}</div>
-                <h2 className="case-card__title">{c.title}</h2>
-                <p className="case-card__subtitle">{c.subtitle}</p>
+                <div className="case-card__number">
+                  #{i + 1}
+                  {isCustom && <span className="editor-badge" style={{marginLeft:'0.5rem'}}>WŁASNA</span>}
+                  {isCustom && <span className="case-card__delete" onClick={e => handleDeleteCustom(e, c.id)}><Trash2 size={12} /></span>}
+                </div>
+                <h2 className="case-card__title">{c.title || 'Bez tytułu'}</h2>
+                <p className="case-card__subtitle">{c.subtitle || ''}</p>
                 <div className="case-card__meta">
                   <span className="case-card__difficulty">{c.difficulty}</span>
                   <span className="case-card__time">{c.estimate}</span>
@@ -305,20 +321,21 @@ function MainMenu({ onSelectCase }) {
             );
           })}
 
-          <motion.div 
-            className="case-card case-card--locked"
+          {/* Create new case card */}
+          <motion.button
+            className="case-card case-card--editor"
+            onClick={onOpenEditor}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: allCases.length * 0.1 }}
           >
-            <div className="case-card__number">#{allCases.length + 1}</div>
-            <h2 className="case-card__title">Wkrótce...</h2>
-            <p className="case-card__subtitle">Następna sprawa w przygotowaniu</p>
+            <div className="case-card__number"><Edit3 size={14} /></div>
+            <h2 className="case-card__title">Edytor Spraw</h2>
+            <p className="case-card__subtitle">Stwórz własną zagadkę detektywistyczną</p>
             <div className="case-card__meta">
-              <span className="case-card__difficulty">???</span>
-              <Lock size={14} style={{ color: 'var(--text-muted)' }} />
+              <span className="case-card__difficulty">KREATOR</span>
             </div>
-          </motion.div>
+          </motion.button>
         </div>
 
         <footer className="noir-footer">
@@ -490,13 +507,18 @@ function GameScreen({ caseData, onBackToMenu }) {
 function App() {
   const [activeCase, setActiveCase] = useState(null);
   const [showIntro, setShowIntro] = useState(true);
+  const [showEditor, setShowEditor] = useState(false);
 
   if (showIntro) {
     return <IntroScreen onDismiss={() => setShowIntro(false)} />;
   }
 
+  if (showEditor) {
+    return <CaseEditor onBack={() => setShowEditor(false)} onTestCase={(c) => { setShowEditor(false); setActiveCase(c); }} />;
+  }
+
   if (!activeCase) {
-    return <MainMenu onSelectCase={setActiveCase} />;
+    return <MainMenu onSelectCase={setActiveCase} onOpenEditor={() => setShowEditor(true)} />;
   }
 
   return <GameScreen key={activeCase.id} caseData={activeCase} onBackToMenu={() => setActiveCase(null)} />;

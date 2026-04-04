@@ -1,5 +1,33 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { playDoorSound, playDiscoverySound, playTypewriterClick, playErrorSound, playSuccessSound } from '../sounds.js';
+
+// ============================================
+// HINT GENERATOR
+// ============================================
+function generateHint(caseData, inventory, flags, currentRoomId, visitedRooms) {
+  const allRoomIds = Object.keys(caseData.rooms);
+  const unvisited = allRoomIds.filter(id => !visitedRooms.has(id));
+  if (unvisited.length > 0) {
+    const room = caseData.rooms[unvisited[0]];
+    return `💡 Wskazówka: Nie odwiedziłeś jeszcze lokacji "${room.name}". Może warto tam zajrzeć?`;
+  }
+  const currentNodes = caseData.rooms[currentRoomId]?.nodes || [];
+  const talkNodes = currentNodes.filter(n => n.action && n.action.startsWith('talk_'));
+  for (const node of talkNodes) {
+    const flagKey = node.action.replace('examine_', '').replace('talk_', '') + 'Talked';
+    const altKeys = [flagKey, node.action.replace('talk_', '') + 'Spoke', node.action.replace('talk_', '') + 'Talked'];
+    const talked = altKeys.some(k => flags[k]);
+    if (!talked) return `💡 Wskazówka: Spróbuj porozmawiać — "${node.label}". Może coś wie?`;
+  }
+  if (inventory.length >= 2) {
+    return '💡 Wskazówka: Może warto połączyć jakieś przedmioty? Kliknij jeden, potem drugi.';
+  }
+  const examineNodes = currentNodes.filter(n => n.action && n.action.startsWith('examine_'));
+  for (const node of examineNodes) {
+    return `💡 Wskazówka: Spróbuj zbadać "${node.label}" w obecnej lokacji.`;
+  }
+  return '💡 Wskazówka: Przeszukaj inne lokacje i szukaj nowych dowodów.';
+}
 
 export const useGame = (caseData) => {
   const [currentRoomId, setCurrentRoomId] = useState(caseData.startingRoom);
@@ -11,6 +39,11 @@ export const useGame = (caseData) => {
   const [gameWon, setGameWon] = useState(false);
   const [steps, setSteps] = useState(0);
   const startTime = useRef(Date.now());
+  const lastProgressTime = useRef(Date.now());
+  const lastHintTime = useRef(0);
+  const visitedRooms = useRef(new Set([caseData.startingRoom]));
+  const prevInventoryLen = useRef(0);
+  const prevFlagsCount = useRef(0);
 
   const currentRoom = useMemo(() => caseData.rooms[currentRoomId], [currentRoomId, caseData]);
 
@@ -20,9 +53,36 @@ export const useGame = (caseData) => {
     setLogs(prev => [text, ...prev].slice(0, 15));
   }, []);
 
+  // Hint system: track progress
+  useEffect(() => {
+    const flagsCount = Object.keys(flags).length;
+    if (inventory.length > prevInventoryLen.current || flagsCount > prevFlagsCount.current) {
+      lastProgressTime.current = Date.now();
+      prevInventoryLen.current = inventory.length;
+      prevFlagsCount.current = flagsCount;
+    }
+  }, [inventory, flags]);
+
+  // Hint system: check every 60s, fire hint after 5 min no progress
+  useEffect(() => {
+    if (gameWon) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const sinceProgress = now - lastProgressTime.current;
+      const sinceLastHint = now - lastHintTime.current;
+      if (sinceProgress >= 300000 && sinceLastHint >= 120000) {
+        lastHintTime.current = now;
+        const hint = generateHint(caseData, inventory, flags, currentRoomId, visitedRooms.current);
+        setLogs(prev => [hint, ...prev].slice(0, 15));
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [caseData, inventory, flags, currentRoomId, gameWon]);
+
   const handleMove = useCallback((targetId) => {
     if (caseData.rooms[targetId]) {
       playDoorSound();
+      visitedRooms.current.add(targetId);
       setCurrentRoomId(targetId);
       setSelectedItem(null);
       addLog(`Przechodzisz do: ${caseData.rooms[targetId].name}`);
@@ -536,12 +596,109 @@ export const useGame = (caseData) => {
     return false;
   }, [caseData, getFlag, addLog]);
 
+  // =============================================
+  // CUSTOM CASE: Data-driven action handler
+  // =============================================
+  const handleCustomAction = useCallback((action) => {
+    if (!caseData.actions) return;
+    if (action === 'ending_check' && caseData.victoryConditions) {
+      const vc = caseData.victoryConditions;
+      const hasItems = (vc.requiredItems || []).every(i => inventory.includes(i));
+      const hasFlags = (vc.requiredFlags || []).every(f => getFlag(f));
+      if (hasItems && hasFlags) { playSuccessSound(); setGameWon(true); }
+      else { addLog('Brakuje dowodów. Szukaj dalej!'); }
+      return;
+    }
+    const actionData = caseData.actions[action];
+    if (!actionData) { addLog('Nic się nie dzieje.'); return; }
+    for (const branch of (actionData.branches || [])) {
+      const condsMet = (branch.conditions || []).every(c => {
+        switch (c.type) {
+          case 'noFlag': return !getFlag(c.key);
+          case 'hasFlag': return getFlag(c.key);
+          case 'hasItem': return inventory.includes(c.key);
+          case 'noItem': return !inventory.includes(c.key);
+          case 'selectedItem': return selectedItem === c.key;
+          default: return true;
+        }
+      });
+      if (condsMet) {
+        for (const effect of (branch.effects || [])) {
+          switch (effect.type) {
+            case 'setFlag': setFlag(effect.key); break;
+            case 'addItem': addToInventory(effect.key); break;
+            case 'log': addLog(effect.text); break;
+            case 'showCodepad': setShowCodepad(effect.key); break;
+          }
+        }
+        return;
+      }
+    }
+    addLog(actionData.defaultLog || 'Nic się nie dzieje.');
+  }, [caseData, inventory, flags, selectedItem, addLog, addToInventory, setFlag, getFlag]);
+
+  // Custom case combine handler
+  const handleCustomCombine = useCallback((item1, item2) => {
+    if (!caseData.combines) return false;
+    const pair = [item1, item2].sort();
+    for (const combo of caseData.combines) {
+      const comboPair = [combo.item1, combo.item2].sort();
+      if (pair[0] === comboPair[0] && pair[1] === comboPair[1]) {
+        const remove = combo.removeItems || [];
+        setInventory(prev => prev.filter(i => !remove.includes(i)).concat(combo.resultItem ? [combo.resultItem] : []));
+        playSuccessSound();
+        addLog(combo.log || 'Połączono przedmioty!');
+        if (combo.flag) setFlag(combo.flag);
+        return true;
+      }
+    }
+    return false;
+  }, [caseData, addLog, setFlag]);
+
+  // Custom case codepad handler
+  const handleCustomCodeSubmit = useCallback((type, code) => {
+    if (!caseData.codes) return false;
+    for (const c of caseData.codes) {
+      if (c.type === type && c.code === code) {
+        playSuccessSound();
+        for (const effect of (c.effects || [])) {
+          switch (effect.type) {
+            case 'setFlag': setFlag(effect.key); break;
+            case 'addItem': addToInventory(effect.key); break;
+            case 'log': addLog(effect.text); break;
+          }
+        }
+        setShowCodepad(null);
+        return true;
+      }
+    }
+    playErrorSound();
+    addLog('Błędny kod.');
+    return false;
+  }, [caseData, addLog, addToInventory, setFlag]);
+
+  // Wrap handlers to support both built-in and custom cases
+  const isCustom = !!caseData.isCustom;
+  const wrappedAction = isCustom ? handleCustomAction : handleAction;
+  const wrappedCombine = useCallback((a, b) => {
+    if (isCustom) return handleCustomCombine(a, b);
+    return handleCombine(a, b);
+  }, [isCustom, handleCustomCombine, handleCombine]);
+  const wrappedCodeSubmit = useCallback((t, c) => {
+    if (isCustom) return handleCustomCodeSubmit(t, c);
+    return handleCodeSubmit(t, c);
+  }, [isCustom, handleCustomCodeSubmit, handleCodeSubmit]);
+
   return {
     currentRoom, currentRoomId, inventory, logs, flags,
     selectedItem, setSelectedItem,
     showCodepad, setShowCodepad,
     gameWon, setGameWon,
     steps, startTime: startTime.current,
-    handleMove, handleAction, handleCombine, handleCodeSubmit, handleItemUse
+    handleMove,
+    handleAction: wrappedAction,
+    handleCombine: wrappedCombine,
+    handleCodeSubmit: wrappedCodeSubmit,
+    handleItemUse
   };
 };
