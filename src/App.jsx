@@ -509,6 +509,14 @@ function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
 
+  const EDITOR_PIN = '1947';
+
+  const handleOpenEditor = () => {
+    const pin = prompt('🔒 Edytor jest chroniony. Podaj PIN:');
+    if (pin === EDITOR_PIN) setShowEditor(true);
+    else if (pin !== null) alert('Nieprawidłowy PIN.');
+  };
+
   if (showIntro) {
     return <IntroScreen onDismiss={() => setShowIntro(false)} />;
   }
@@ -518,7 +526,7 @@ function App() {
   }
 
   if (!activeCase) {
-    return <MainMenu onSelectCase={setActiveCase} onOpenEditor={() => setShowEditor(true)} />;
+    return <MainMenu onSelectCase={setActiveCase} onOpenEditor={handleOpenEditor} />;
   }
 
   return <GameScreen key={activeCase.id} caseData={activeCase} onBackToMenu={() => setActiveCase(null)} />;

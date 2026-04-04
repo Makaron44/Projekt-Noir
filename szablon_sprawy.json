@@ -1,0 +1,308 @@
+{
+  "_INSTRUKCJA": "Ten plik to szablon nowej sprawy do gry 'Projekt Noir: Detektyw'. Uzupełnij wszystkie pola swoją historią kryminalną. Gotowy plik zaimportuj w grze przez Edytor Spraw > Import.",
+  "_ZASADY": [
+    "1. Każdy pokój ma 'nodes' — to przyciski akcji (examine_) lub przejścia do innych pokoi (target)",
+    "2. Każda akcja z 'action' musi mieć odpowiadający wpis w sekcji 'actions' z logiką gałęzi",
+    "3. Przedmioty (items) to dowody zbierane przez gracza — definiuj je w 'items'",
+    "4. Łączenie przedmiotów (combines) pozwala graczowi kombinować dwa dowody w nowy",
+    "5. Warunki wygranej (victoryConditions) określają co gracz musi zebrać/odkryć by rozwiązać sprawę",
+    "6. Flagi (flags) to ukryte zmienne True/False śledzące postęp gracza",
+    "7. Dostępne ikony: Search, DoorClosed, BookOpen, Map, Settings, FileText, Lock, Smartphone, Flashlight, Battery, Zap, PenTool, Key, Ticket, Camera, Book, Library, Footprints, Home, AlertCircle"
+  ],
+
+  "id": "custom_moja_sprawa",
+  "title": "Tytuł Sprawy",
+  "subtitle": "Krótki opis — np. 'Morderstwo w hotelu'",
+  "difficulty": "★★★",
+  "estimate": "~20 min",
+  "isCustom": true,
+  "startingRoom": "pokoj_1",
+  "victoryText": "Tekst wyświetlany po rozwiązaniu sprawy. Opisz rozwiązanie zagadki i zakończenie fabuły.",
+
+  "rooms": {
+    "pokoj_1": {
+      "name": "Nazwa Pokoju 1 (np. Hol Hotelu)",
+      "description": "Atmosferyczny opis lokacji widziany przez gracza. Pisz w klimacie noir — ciemno, deszczowo, tajemniczo. Tu gracz zaczyna śledztwo.",
+      "nodes": [
+        {
+          "id": "n1",
+          "label": "Przeszukaj Recepcję",
+          "action": "examine_recepcja",
+          "icon": "Search"
+        },
+        {
+          "id": "n2",
+          "label": "Porozmawiaj z Portierem",
+          "action": "talk_portier",
+          "icon": "Search"
+        },
+        {
+          "id": "nav_p2",
+          "label": "Idź do Pokoju Ofiary",
+          "target": "pokoj_2",
+          "icon": "DoorClosed"
+        },
+        {
+          "id": "nav_p3",
+          "label": "Idź do Piwnicy",
+          "target": "pokoj_3",
+          "icon": "DoorClosed"
+        }
+      ]
+    },
+    "pokoj_2": {
+      "name": "Nazwa Pokoju 2 (np. Pokój 237)",
+      "description": "Opis drugiej lokacji...",
+      "nodes": [
+        {
+          "id": "n3",
+          "label": "Przeszukaj Biurko",
+          "action": "examine_biurko",
+          "icon": "Search"
+        },
+        {
+          "id": "n4",
+          "label": "Sprawdź Okno",
+          "action": "examine_okno",
+          "icon": "Search"
+        },
+        {
+          "id": "n5",
+          "label": "Zbadaj Ciało",
+          "action": "examine_cialo",
+          "icon": "AlertCircle"
+        },
+        {
+          "id": "nav_back1",
+          "label": "Wróć do Holu",
+          "target": "pokoj_1",
+          "icon": "DoorClosed"
+        }
+      ]
+    },
+    "pokoj_3": {
+      "name": "Nazwa Pokoju 3 (np. Piwnica)",
+      "description": "Opis trzeciej lokacji...",
+      "nodes": [
+        {
+          "id": "n6",
+          "label": "Przeszukaj Skrzynie",
+          "action": "examine_skrzynie",
+          "icon": "Search"
+        },
+        {
+          "id": "n7",
+          "label": "Wskaż Mordercę",
+          "action": "ending_check",
+          "icon": "AlertCircle"
+        },
+        {
+          "id": "nav_back2",
+          "label": "Wróć do Holu",
+          "target": "pokoj_1",
+          "icon": "DoorClosed"
+        }
+      ]
+    }
+  },
+
+  "items": {
+    "klucz_pokoju": {
+      "name": "Klucz do Pokoju 237",
+      "desc": "Stary mosiężny klucz z numerem pokoju wyrytym na główce.",
+      "icon": "Key"
+    },
+    "list_pogrozb": {
+      "name": "List z Pogróżkami",
+      "desc": "Anonimowy list: 'Wiem co zrobiłeś. Zapłacisz.' Pisany na maszynie.",
+      "icon": "FileText"
+    },
+    "odcisk_palca": {
+      "name": "Odcisk Palca",
+      "desc": "Zabezpieczony odcisk palca z klamki — nie pasuje do ofiary.",
+      "icon": "Search"
+    },
+    "zeznanie_portiera": {
+      "name": "Zeznanie Portiera",
+      "desc": "Portier widział podejrzanego mężczyznę o 23:00 na korytarzu.",
+      "icon": "FileText"
+    },
+    "noz_dowod": {
+      "name": "Nóż — Dowód Rzeczowy",
+      "desc": "Nóż kuchenny znaleziony w skrzyni. Ślady krwi na ostrzu.",
+      "icon": "AlertCircle"
+    },
+    "pelny_dowod": {
+      "name": "Kompletny Materiał Dowodowy",
+      "desc": "Odcisk palca + nóż = powiązany dowód wskazujący na portiera.",
+      "icon": "Zap"
+    }
+  },
+
+  "_OBJAŚNIENIE_ACTIONS": [
+    "Każda akcja ma 'branches' (gałęzie) sprawdzane po kolei.",
+    "Pierwsza gałąź której warunki (conditions) są spełnione — wykonuje efekty (effects).",
+    "Jeśli żadna gałąź nie pasuje — wyświetla 'defaultLog'.",
+    "",
+    "TYPY WARUNKÓW (conditions):",
+    "  'noFlag'       — flaga NIE jest ustawiona (gracz jeszcze czegoś nie zrobił)",
+    "  'hasFlag'      — flaga JEST ustawiona",
+    "  'hasItem'      — gracz MA przedmiot w ekwipunku",
+    "  'noItem'       — gracz NIE MA przedmiotu",
+    "  'selectedItem' — gracz TRZYMA wybrany przedmiot (kliknął na niego)",
+    "",
+    "TYPY EFEKTÓW (effects):",
+    "  'setFlag'  — ustaw flagę (key: 'nazwa_flagi')",
+    "  'addItem'  — dodaj przedmiot do ekwipunku (key: 'klucz_itemu')",
+    "  'log'      — wyświetl tekst w dzienniku (text: 'treść...')"
+  ],
+
+  "actions": {
+    "examine_recepcja": {
+      "branches": [
+        {
+          "_opis": "Pierwsze przeszukanie — gracz znajduje klucz",
+          "conditions": [
+            { "type": "noFlag", "key": "recepcja_searched" }
+          ],
+          "effects": [
+            { "type": "setFlag", "key": "recepcja_searched" },
+            { "type": "addItem", "key": "klucz_pokoju" },
+            { "type": "log", "text": "Za ladą recepcji znajdujesz zapasowy klucz do Pokoju 237. Ktoś go tu podrzucił." }
+          ]
+        }
+      ],
+      "defaultLog": "Recepcja przeszukana. Nic więcej tu nie ma."
+    },
+
+    "talk_portier": {
+      "branches": [
+        {
+          "_opis": "Pierwszy raz — portier mówi ogólniki",
+          "conditions": [
+            { "type": "noFlag", "key": "portier_talked" }
+          ],
+          "effects": [
+            { "type": "setFlag", "key": "portier_talked" },
+            { "type": "log", "text": "Portier Nowak: 'Nic nie widziałem. Byłem w piwnicy po wino.' Unika kontaktu wzrokowego." }
+          ]
+        },
+        {
+          "_opis": "Gdy gracz ma odcisk palca — portier się łamie i przyznaje",
+          "conditions": [
+            { "type": "hasFlag", "key": "portier_talked" },
+            { "type": "hasItem", "key": "odcisk_palca" }
+          ],
+          "effects": [
+            { "type": "setFlag", "key": "portier_confessed" },
+            { "type": "addItem", "key": "zeznanie_portiera" },
+            { "type": "log", "text": "Pokazujesz odcisk. Nowak blednie: 'Dobrze... byłem tam. Ale to nie ja go zabiłem! Przyszedłem po pieniądze i zastałem go martwego!'" }
+          ]
+        }
+      ],
+      "defaultLog": "Portier odmawia dalszej rozmowy."
+    },
+
+    "examine_biurko": {
+      "branches": [
+        {
+          "conditions": [
+            { "type": "noFlag", "key": "biurko_searched" }
+          ],
+          "effects": [
+            { "type": "setFlag", "key": "biurko_searched" },
+            { "type": "addItem", "key": "list_pogrozb" },
+            { "type": "log", "text": "W szufladzie biurka list z pogróżkami. Anonimowy, ale na papierze hotelowym." }
+          ]
+        }
+      ],
+      "defaultLog": "Biurko puste."
+    },
+
+    "examine_okno": {
+      "branches": [
+        {
+          "conditions": [
+            { "type": "noFlag", "key": "okno_checked" }
+          ],
+          "effects": [
+            { "type": "setFlag", "key": "okno_checked" },
+            { "type": "log", "text": "Okno zamknięte od wewnątrz. Rygiel nietknięty. Morderca wyszedł drzwiami." }
+          ]
+        }
+      ],
+      "defaultLog": "Okno zamknięte od środka."
+    },
+
+    "examine_cialo": {
+      "branches": [
+        {
+          "conditions": [
+            { "type": "noFlag", "key": "cialo_examined" }
+          ],
+          "effects": [
+            { "type": "setFlag", "key": "cialo_examined" },
+            { "type": "addItem", "key": "odcisk_palca" },
+            { "type": "log", "text": "Ofiara: mężczyzna ok. 50 lat, rana kłuta w plecy. Na klamce drzwi — wyraźny odcisk palca. Zabezpieczasz go." }
+          ]
+        }
+      ],
+      "defaultLog": "Ciało zbadane. Rana kłuta, odcisk zabezpieczony."
+    },
+
+    "examine_skrzynie": {
+      "branches": [
+        {
+          "conditions": [
+            { "type": "noFlag", "key": "skrzynie_searched" }
+          ],
+          "effects": [
+            { "type": "setFlag", "key": "skrzynie_searched" },
+            { "type": "addItem", "key": "noz_dowod" },
+            { "type": "log", "text": "Pod starymi butelkami wina — nóż kuchenny ze śladami krwi. Ktoś go tu schował w pośpiechu." }
+          ]
+        }
+      ],
+      "defaultLog": "Skrzynie puste."
+    }
+  },
+
+  "_OBJAŚNIENIE_COMBINES": [
+    "Łączenie przedmiotów: gracz klika jeden, potem drugi.",
+    "item1 + item2 → resultItem (nowy przedmiot dodany do ekwipunku)",
+    "removeItems: które przedmioty usunąć po połączeniu",
+    "log: tekst wyświetlany po udanym połączeniu"
+  ],
+
+  "combines": [
+    {
+      "item1": "odcisk_palca",
+      "item2": "noz_dowod",
+      "resultItem": "pelny_dowod",
+      "removeItems": ["odcisk_palca", "noz_dowod"],
+      "log": "Porównujesz odcisk z nożem — pasuje! To ten sam człowiek trzymał nóż i klamkę. Masz powiązany dowód.",
+      "flag": "evidence_linked"
+    }
+  ],
+
+  "_OBJAŚNIENIE_CODES": [
+    "Opcjonalne szyfry: sejfy, telefony, zamki.",
+    "type: identyfikator klawiatury (np. 'safe', 'phone')",
+    "code: prawidłowy 4-cyfrowy kod",
+    "effects: co się stanie po wpisaniu kodu"
+  ],
+
+  "codes": [],
+
+  "_OBJAŚNIENIE_VICTORY": [
+    "Gdy gracz kliknie 'Wskaż Mordercę' (action: 'ending_check'),",
+    "gra sprawdza czy spełnione są warunki wygranej.",
+    "requiredItems: gracz musi MIEĆ te przedmioty",
+    "requiredFlags: te flagi muszą być ustawione"
+  ],
+
+  "victoryConditions": {
+    "requiredItems": ["pelny_dowod", "zeznanie_portiera"],
+    "requiredFlags": ["portier_confessed"]
+  }
+}
